@@ -65,6 +65,32 @@ body, #root { width:100%; max-width:100%; margin-left:auto; margin-right:auto; o
   #root table { width:100%; max-width:100%; }
   #root iframe, #root video, #root img { max-width:100%; }
 }
+
+/* Mobile app-like viewport fit */
+@media (max-width: 768px) {
+  body { font-size: 16px !important; }
+  #root { padding: 12px !important; }
+  #root .flex, #root .grid { gap: 10px !important; }
+  #root .g { padding: 12px !important; }
+  #root iframe { width: 100% !important; }
+  #root .overflow-x-auto { scrollbar-width: thin; }
+  #root input[type=checkbox], #root input[type=radio] { width: 22px !important; height: 22px !important; flex: 0 0 auto; }
+}
+
+/* Final mobile app-fit polish: fit viewport, prevent horizontal page overflow, keep controls touch-sized. */
+html, body { width:100%; max-width:100%; overflow-x:hidden; }
+body { margin:0; }
+#root { width:100%; max-width:100%; overflow-x:hidden; }
+@media (max-width: 600px) {
+  body { font-size:16px; -webkit-text-size-adjust:100%; }
+  #root > div { width:100%; max-width:100%; }
+  #root .flex { flex-wrap:wrap; }
+  #root .flex > button, #root .tab { min-height:44px; }
+  #root input, #root textarea, #root select { font-size:16px !important; }
+  #root iframe { width:100%; }
+  #root .space-y-3 > * { margin-top:.65rem; }
+}
+
 </style></head>
 <body><div id="root"></div>
 <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
@@ -78,7 +104,7 @@ useEffect(()=>{sb.from('app_settings').select('value').eq('key','features').mayb
 const adm=p.role==='admin',B=(k,l)=>html`<button class=${'tab '+(m===k?'on':'g')} onClick=${()=>setM(k)}>${l}</button>`;
 return html`<div><div class="flex gap-2 mb-4">${B('ch','চ্যালেঞ্জ')}${(F.classes||adm)&&B('plus','ক্লাস ও XP')}</div>
 ${m==='ch'?(adm?html`<${Admin}/>`:html`<${Student} p=${p}/>`):(adm?html`<${AdminPlus} F=${F} setF=${setF}/>`:html`<${StudentPlus} p=${p} F=${F}/>`)}</div>`}
-function AdminPlus({F,setF}){const[cl,setCl]=useState([]),[an,setAn]=useState([]),[f,setf]=useState({title:'',url:'',xp:10,date:today(),pub:true}),[a,setA]=useState({title:'',body:''});
+function AdminPlus({F,setF}){const[cl,setCl]=useState([]),[an,setAn]=useState([]),[f,setf]=useState({title:'',url:'',xp:10,date:today(),pub:true}),[a,setA]=useState({title:'',body:''}),[selected,setSelected]=useState(null);
 const load=async()=>{const[c,n]=await Promise.all([sb.from('classes').select('*').order('class_date',{ascending:false}),sb.from('announcements').select('*').order('created_at',{ascending:false})]);setCl(c.data||[]);setAn(n.data||[])};useEffect(()=>{load()},[]);
 const add=async()=>{if(!f.title.trim())return alert('ক্লাসের নাম লিখুন');if(f.url&&!yt(f.url))return alert('সঠিক YouTube লিংক দিন');const{error}=await sb.from('classes').insert({title:f.title.trim(),youtube_url:f.url||null,xp:+f.xp||0,class_date:f.date,published:f.pub});if(error)return alert(error.message);setf({...f,title:'',url:''});load()};
 const tog=async c=>{await sb.from('classes').update({published:!c.published}).eq('id',c.id);load()};
@@ -86,10 +112,15 @@ const edit=async c=>{const t=prompt('ক্লাসের নাম',c.title);i
 const del=async c=>{if(confirm('ক্লাসটি মুছবেন? (XP ইতিহাস থাকবে)')){await sb.from('classes').delete().eq('id',c.id);load()}};
 const post=async()=>{if(!a.title.trim())return;const{error}=await sb.from('announcements').insert({title:a.title.trim(),body:a.body});if(error)return alert(error.message);setA({title:'',body:''});load()};
 const saveF=async n=>{setF(n);const{error}=await sb.from('app_settings').upsert({key:'features',value:n,updated_at:new Date().toISOString()});if(error)alert(error.message)};
+if(selected)return html`<div><button class="tab g mb-3" onClick=${()=>setSelected(null)}>← ক্লাস তালিকায় ফিরুন</button><${ClassTracker} c=${selected}/></div>`;
 return html`<div class="space-y-3"><div class="g p-3 space-y-2"><div class="font-semibold">ফিচার চালু/বন্ধ</div>${[['classes','ক্লাস'],['xp','XP ও লিডারবোর্ড'],['announcements','ঘোষণা']].map(([k,l])=>html`<label key=${k} class="flex gap-2 items-center"><input type="checkbox" class="!w-5 !h-5" checked=${F[k]!==false} onChange=${e=>saveF({...F,[k]:e.target.checked})}/>${l}</label>`)}</div>
 <div class="g p-3 space-y-2"><div class="font-semibold">নতুন ক্লাস</div><input placeholder="ক্লাসের নাম" value=${f.title} onInput=${e=>setf({...f,title:e.target.value})}/><input placeholder="YouTube লিংক" value=${f.url} onInput=${e=>setf({...f,url:e.target.value})}/><div class="flex gap-2"><input type="date" value=${f.date} onInput=${e=>setf({...f,date:e.target.value})}/><input type="number" placeholder="XP" value=${f.xp} onInput=${e=>setf({...f,xp:e.target.value})}/></div><label class="flex gap-2"><input type="checkbox" class="!w-5 !h-5" checked=${f.pub} onChange=${e=>setf({...f,pub:e.target.checked})}/>প্রকাশ করুন</label><button class="btn w-full" onClick=${add}>ক্লাস যোগ করুন</button></div>
-${cl.map(c=>html`<div key=${c.id} class="g p-3 flex justify-between items-center gap-2"><span class="min-w-0">${c.title}<div class="text-xs text-blue-200">${c.class_date} · ${c.xp} XP · ${c.published?'প্রকাশিত':'ড্রাফট'}</div></span><span class="flex gap-2 text-xs">${yt(c.youtube_url)&&html`<a class="underline" target="_blank" rel="noopener" href=${'https://www.youtube.com/watch?v='+yt(c.youtube_url)}>▶ দেখুন</a>`}<button class="underline" onClick=${()=>edit(c)}>সম্পাদনা</button><button class="underline" onClick=${()=>tog(c)}>${c.published?'লুকান':'প্রকাশ'}</button><button class="underline text-red-300" onClick=${()=>del(c)}>মুছুন</button></span></div>`)}
+${cl.map(c=>html`<div key=${c.id} class="g p-3 flex justify-between items-center gap-2"><button class="text-left flex-1 min-w-0 font-semibold" onClick=${()=>setSelected(c)}>${c.title}<div class="text-xs text-blue-200">${c.class_date} · ${c.xp} XP · ${c.published?'প্রকাশিত':'ড্রাফট'}</div></button><span class="flex gap-2 text-xs">${yt(c.youtube_url)&&html`<a class="underline" target="_blank" rel="noopener" href=${'https://www.youtube.com/watch?v='+yt(c.youtube_url)}>▶ দেখুন</a>`}<button class="underline" onClick=${()=>edit(c)}>সম্পাদনা</button><button class="underline" onClick=${()=>tog(c)}>${c.published?'লুকান':'প্রকাশ'}</button><button class="underline text-red-300" onClick=${()=>del(c)}>মুছুন</button></span></div>`)}
 <div class="g p-3 space-y-2"><div class="font-semibold">ঘোষণা</div><input placeholder="শিরোনাম" value=${a.title} onInput=${e=>setA({...a,title:e.target.value})}/><input placeholder="বিবরণ" value=${a.body} onInput=${e=>setA({...a,body:e.target.value})}/><button class="btn w-full" onClick=${post}>প্রকাশ</button>${an.map(x=>html`<div key=${x.id} class="text-sm flex justify-between"><span>${x.title}</span><button class="underline text-red-300 text-xs" onClick=${async()=>{await sb.from('announcements').delete().eq('id',x.id);load()}}>মুছুন</button></div>`)}</div></div>`}
+function ClassTracker({c}){const[students,setStudents]=useState([]),[done,setDone]=useState(new Set()),[busy,setBusy]=useState(false);
+useEffect(()=>{(async()=>{setBusy(true);const[a,b]=await Promise.all([sb.from('profiles').select('id,name,active').eq('role','student').eq('active',true).order('name'),sb.from('class_completions').select('student_id').eq('class_id',c.id)]);if(a.error)alert(a.error.message);if(b.error)alert(b.error.message);setStudents(a.data||[]);setDone(new Set((b.data||[]).map(x=>x.student_id)));setBusy(false)})()},[c.id]);
+const toggle=async s=>{const is=done.has(s.id);const next=new Set(done);is?next.delete(s.id):next.add(s.id);setDone(next);const r=is?await sb.from('class_completions').delete().eq('class_id',c.id).eq('student_id',s.id):await sb.from('class_completions').insert({class_id:c.id,student_id:s.id});if(r.error){alert('সেভ হয়নি: '+r.error.message);const{data}=await sb.from('class_completions').select('student_id').eq('class_id',c.id);setDone(new Set((data||[]).map(x=>x.student_id)))}};
+return html`<div class="space-y-3"><div class="g p-3"><div class="text-lg font-bold">${c.title}</div>${c.youtube_url&&html`<a class="btn block text-center mt-2" target="_blank" rel="noopener" href=${c.youtube_url}>▶ ক্লাস লিংক খুলুন</a>`}<div class="text-sm text-slate-500 mt-2">সম্পন্ন: ${done.size}/${students.length} জন</div></div>${busy?html`<div class="g p-4 text-center">লোড হচ্ছে...</div>`:html`<div class="g divide-y divide-slate-100">${students.map(s=>html`<button key=${s.id} class="w-full p-3 flex items-center justify-between text-left" onClick=${()=>toggle(s)}><span>${s.name}</span><span class="text-xl ${done.has(s.id)?'text-green-600':'text-slate-300'}">${done.has(s.id)?'✓':'○'}</span></button>`)}</div>`}</div>`}
 function StudentPlus({p,F}){const[d,setD]=useState(null);
 const load=async()=>{const[c,k,x,l,n,s]=await Promise.all([sb.from('classes').select('*').eq('published',true).order('class_date',{ascending:false}).limit(30),sb.from('class_completions').select('class_id').eq('student_id',p.id),sb.from('xp_transactions').select('amount').eq('student_id',p.id),sb.rpc('xp_leaderboard'),sb.from('announcements').select('*').order('pinned',{ascending:false}).order('created_at',{ascending:false}).limit(5),sb.from('app_settings').select('value').eq('key','levels').maybeSingle()]);
 setD({c:c.data||[],k:new Set((k.data||[]).map(r=>r.class_id)),xp:(x.data||[]).reduce((s,r)=>s+r.amount,0),l:l.data||[],n:n.data||[],L:(s.data&&s.data.value)||[{n:'Starter',xp:0}]})};useEffect(()=>{load()},[]);
@@ -111,7 +142,7 @@ const L=k=>(U.labels&&U.labels[k])||UIx[k];
 const tabs=[['ch','চ্যালেঞ্জ'],['classes',L('classes')],['comm',L('comm')],...(adm?[['ana',L('ana')],['set',L('set')]]:[['rew',L('rew')]])].filter(([k])=>k==='ch'||adm||F[k]!==false);
 return html`<div><div class="flex gap-2 mb-4 overflow-x-auto">${tabs.map(([k,l])=>html`<button key=${k} class=${'tab whitespace-nowrap '+(m===k?'on':'g')} onClick=${()=>setM(k)}>${l}</button>`)}</div>
 ${!adm&&html`<${Remind} p=${p} U=${U}/>`}
-${m==='ch'?(adm?html`<${Admin}/>`:html`<${Student} p=${p}/>`):m==='classes'?(adm?html`<${AdminPlus} F=${F} setF=${setF}/>`:html`<${StudentPlus} p=${p} F=${F}/>`):m==='comm'?html`<${Comm} p=${p} adm=${adm}/>`:m==='mcq'||m==='comp'?(adm?html`<${McqAdmin} key=${m} kind=${m}/>`:html`<${McqStudent} key=${m} p=${p} kind=${m}/>`):m==='rew'?html`<${Rewards} p=${p}/>`:m==='ana'?html`<${Ana}/>`:html`<${Settings} F=${F} setF=${setF} U=${U} setU=${setU}/>`}</div>`}
+${m==='ch'?(adm?html`<${Admin}/>`:html`<${Student} p=${p}/>`):m==='classes'?(adm?html`<${AdminPlus} F=${F} setF=${setF}/>`:html`<${StudentPlus} p=${p} F=${F}/>`):m==='comm'?html`<${Comm} p=${p} adm=${adm}/>`:m==='rew'?html`<${Rewards} p=${p}/>`:m==='ana'?html`<${Ana}/>`:html`<${Settings} F=${F} setF=${setF} U=${U} setU=${setU}/>`}</div>`}
 function Remind({p,U}){const[n,setN]=useState(0);const r=U.rem||{};
 useEffect(()=>{(async()=>{const[c,k]=await Promise.all([sb.from('classes').select('id').eq('published',true).eq('class_date',today()),sb.from('class_completions').select('class_id').eq('student_id',p.id)]);const d=new Set((k.data||[]).map(x=>x.class_id));setN((c.data||[]).filter(x=>!d.has(x.id)).length)})()},[]);
 const hr=+new Date().toLocaleString('en-GB',{hour:'2-digit',hour12:false,timeZone:'Asia/Dhaka'});
@@ -253,7 +284,7 @@ ${chs.map(c=>html`<div key=${c.id} class="g p-3 flex items-center gap-2 flex-wra
 ${tab==='arch'&&html`<div class="space-y-3"><div class="text-sm text-blue-200">এখানকার চ্যালেঞ্জগুলো শিক্ষার্থীদের তালিকায় দেখা যায় না। পুরোনো হাজিরা ও পরীক্ষার তথ্য অক্ষত আছে।</div>${arch.length===0&&html`<div class="g p-4 text-center">আর্কাইভে কোনো চ্যালেঞ্জ নেই</div>`}${arch.map(c=>html`<div key=${c.id} class="g p-3 flex items-center gap-2"><div class="flex-1 font-semibold gold">${c.name}</div><button class="btn text-sm" onClick=${()=>restoreChallenge(c)}>ফিরিয়ে আনুন</button><button class="text-red-300 border border-red-400/40 rounded-lg px-3 py-2 text-sm" onClick=${()=>deleteChallenge(c)}>চিরতরে মুছুন</button></div>`)}</div>`}
 ${tab==='stu'&&html`<${Students} st=${st} reload=${loadS}/>`}</div>`}
 
-function Chal({ch,st}){const[tab,setTab]=useState('att'),[dl,setDl]=useState([]),[date,setDate]=useState(today()),[pres,setPres]=useState(new Set()),[days,setDays]=useState(0),[ex,setEx]=useState([]),[lb,setLb]=useState([]),[mem,setMem]=useState(new Set());
+function Chal({ch,st}){const[tab,setTab]=useState('exam'),[dl,setDl]=useState([]),[date,setDate]=useState(today()),[pres,setPres]=useState(new Set()),[days,setDays]=useState(0),[ex,setEx]=useState([]),[lb,setLb]=useState([]),[mem,setMem]=useState(new Set());
 const loadA=async()=>{const{data}=await sb.from('attendance').select('student_id').eq('day',date).eq('challenge_id',ch.id);setPres(new Set((data||[]).map(r=>r.student_id)))};
 const loadM=async()=>{const{data:d}=await sb.rpc('class_days',{cid:ch.id});setDays((d||[]).length);setDl((d||[]).map(r=>String(r.day).slice(0,10)));
 const{data:e}=await sb.from('exams').select('*').eq('challenge_id',ch.id).order('exam_date',{ascending:false});setEx(e||[]);
@@ -270,7 +301,7 @@ const r=on?await sb.from('challenge_members').delete().eq('challenge_id',ch.id).
 if(r.error){alert(r.error.message);loadMem()}};
 const T=(k,l)=>html`<button class=${'tab '+(tab===k?'on':'g')} onClick=${()=>setTab(k)}>${l}</button>`;
 const Box=(l,v)=>html`<div class="g p-3 text-center"><div class="text-2xl font-bold gold">${v}</div><div class="text-xs">${l}</div></div>`;
-return html`<div><div class="text-xl font-bold gold mb-3">${ch.name}</div><div class="flex gap-2 mb-4 overflow-x-auto">${T('att','হাজিরা')}${T('exam','পরীক্ষা')}${T('lb','র‍্যাংকিং')}${!ch.all_students&&T('mem','সদস্য')}</div>
+return html`<div><div class="text-xl font-bold gold mb-3">${ch.name}</div><div class="flex gap-2 mb-4 overflow-x-auto">${T('exam','পরীক্ষা')}${T('lb','র‍্যাংকিং')}${!ch.all_students&&T('mem','সদস্য')}</div>
 ${tab==='att'&&html`<div class="space-y-3"><div class="grid grid-cols-2 gap-2">${Box('মোট শিক্ষার্থী',act.length)}${Box('মোট ক্লাস',days)}${Box('উপস্থিত',np)}${Box('অনুপস্থিত/পেন্ডিং',act.length-np)}</div>
 <div class="g p-3 space-y-2"><div class="flex items-center justify-between gap-2"><button class="tab g" onClick=${()=>shift(-1)}>◀</button><div class="text-center"><div class="font-bold gold">${fmt(date)}</div><div class="text-xs text-blue-200">${date===today()?'আজ · ':''}${dl.indexOf(date)>=0?'ক্লাস #'+(dl.indexOf(date)+1):'এই তারিখে এখনো কারও হাজিরা দেওয়া হয়নি'}</div></div><button class="tab g" onClick=${()=>shift(1)}>▶</button></div><div class="flex items-center gap-3"><input type="date" value=${date} onInput=${e=>e.target.value&&setDate(e.target.value)}/><div class="gold font-bold whitespace-nowrap">${act.length?Math.round(np/act.length*100):0}%</div></div></div>
 <div class="g divide-y divide-white/10">${act.length===0&&html`<div class="p-4 text-center">এই চ্যালেঞ্জে এখনো কোনো শিক্ষার্থী নেই</div>`}
