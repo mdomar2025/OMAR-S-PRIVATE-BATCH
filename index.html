@@ -463,18 +463,25 @@ return html`<div class="space-y-3"><div class="g p-3 space-y-2"><div class="font
 ${dl.map(x=>html`<div key=${x.id} class="flex justify-between items-center border-t border-slate-100 pt-2 text-sm"><span><b>${x.title}</b> · ${x.due} · ${x.pts||0} XP</span><button type="button" class="underline text-xs" onClick=${()=>del(x)}>মুছুন</button></div>`)}</div>
 <${NoteCheck} students=${students} dls=${dl}/></div>`}
 function NoteStudent({p}){
-const[dl,setDl]=useState([]),[bd,setBd]=useState({}),[pop,setPop]=useState(null);
-useEffect(()=>{(async()=>{try{let all=[];const rp=await sb.rpc('get_note_deadlines');if(!rp.error&&Array.isArray(rp.data))all=rp.data;else{const r=await sb.from('app_settings').select('value').eq('key','note_deadlines').maybeSingle();all=Array.isArray(r.data&&r.data.value)?r.data.value:[]}const lim=new Date(Date.now()-30*864e5).toLocaleDateString('en-CA');const list=all.filter(x=>x.due>=lim);setDl(list);
-const m={};await Promise.all(list.map(async x=>{const b=await sb.rpc('note_board',{lbl:x.title});if(!b.error)m[x.id]=b.data||[]}));setBd(m);
-let seen={};try{seen=JSON.parse(localStorage.getItem('nd_seen')||'{}')}catch(e){}const f=list.find(x=>x.due>=today()&&seen[x.id]!==today());if(f)setPop(f)}catch(e){}})()},[]);
-const close=()=>{try{const s=JSON.parse(localStorage.getItem('nd_seen')||'{}');s[pop.id]=today();localStorage.setItem('nd_seen',JSON.stringify(s))}catch(e){}setPop(null)};
+const[dl,setDl]=useState([]),[bd,setBd]=useState({}),[op,setOp]=useState(false),[tot,setTot]=useState(0);
+useEffect(()=>{(async()=>{try{let all=[];const rp=await sb.rpc('get_note_deadlines');if(!rp.error&&Array.isArray(rp.data))all=rp.data;else{const r=await sb.from('app_settings').select('value').eq('key','note_deadlines').maybeSingle();all=Array.isArray(r.data&&r.data.value)?r.data.value:[]}
+const lim=new Date(Date.now()-30*864e5).toLocaleDateString('en-CA');const list=all.filter(x=>x.due>=lim);setDl(list);
+const m={};await Promise.all(list.map(async x=>{const b=await sb.rpc('note_board',{lbl:x.title});if(!b.error)m[x.id]=b.data||[]}));setBd(m);try{const lb=await sb.rpc('xp_leaderboard');if(!lb.error)setTot((lb.data||[]).length)}catch(e){}}catch(e){}})()},[]);
 const rk=b=>{let r=0,last=null;return b.map((x,i)=>{if(x.amount!==last){r=i+1;last=x.amount}return{...x,r}})};
 const left=x=>Math.round((new Date(x.due+'T00:00:00')-new Date(today()+'T00:00:00'))/864e5);
+const sub=x=>(bd[x.id]||[]).some(y=>y.student_id===p.id);
+const pend=dl.filter(x=>!sub(x)&&left(x)>=-7).sort((a,b)=>a.due<b.due?-1:1);
+const first=pend[0],okd=dl.filter(sub);
+const red=first&&left(first)<=0;
 const card=x=>{const b=rk(bd[x.id]||[]),me=b.find(y=>y.student_id===p.id);return html`<div key=${x.id} class="g p-3 space-y-2"><div class="font-bold">📒 ${x.title}</div><div class="text-xs text-blue-300">জমার তারিখ: ${bnD(x.due)}${x.pts?' · জমা দিলে +'+bnD(x.pts)+' XP':''}${left(x)>=0?' · '+(left(x)===0?'আজই শেষ দিন':bnD(left(x))+' দিন বাকি'):' · সময় শেষ'}</div>
-${me&&html`<div class="rounded-xl bg-green-50 border border-green-300 p-2 text-sm font-semibold text-green-700">তোমার র‍্যাংক: #${bnD(me.r)} · +${bnD(me.amount)} XP</div>`}
+<div class="rounded-xl bg-blue-50 border border-blue-200 p-2 text-sm font-semibold text-blue-800">👥 ${bnD(b.length)} জন নোট জমা দিয়েছে${tot>0?' (মোট '+bnD(tot)+' জনের মধ্যে)':''}${tot>0&&b.length<tot?' · বাকি '+bnD(Math.max(tot-b.length,0))+' জন':''}</div>
+<div class=${'rounded-xl p-2 text-sm font-semibold '+(me?'bg-green-50 border border-green-300 text-green-700':'bg-orange-50 border border-orange-300 text-orange-700')}>${me?'✓ নোট জমা হয়েছে · তোমার র‍্যাংক: #'+bnD(me.r)+' · +'+bnD(me.amount)+' XP':'⚠ তুমি এখনো নোট জমা দাওনি'}</div>
 ${b.length>0?html`<div class="space-y-1">${b.slice(0,10).map(y=>html`<div key=${y.student_id} class=${'flex justify-between text-sm rounded-lg px-2 py-1 '+(y.student_id===p.id?'bg-yellow-400/20':'')}><span><b class="gold">${y.r<=3?['🥇','🥈','🥉'][y.r-1]:'#'+bnD(y.r)}</b> ${y.name}</span><b>${bnD(y.amount)} XP</b></div>`)}</div>`:html`<div class="text-xs text-blue-300">এখনো কারো নোট চেক হয়নি</div>`}</div>`};
-return html`<div>${dl.length>0&&html`<div class="space-y-3">${dl.map(card)}</div>`}
-${pop&&html`<div style=${{position:'fixed',inset:0,zIndex:1000,background:'rgba(0,0,0,.55)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}><div class="g p-5 space-y-3" style=${{background:'#fff',maxWidth:'420px',width:'100%'}}><div class="text-xl font-bold text-center">📒 নোট জমা দাও</div><div class="text-center font-semibold">${pop.title}</div><div class="text-center text-lg">জমার তারিখ: <b>${bnD(pop.due)}</b></div>${pop.pts?html`<div class="text-center text-sm font-semibold text-green-700">জমা দিলে +${bnD(pop.pts)} XP</div>`:''}<div class="text-center text-sm">${left(pop)===0?'আজই শেষ দিন!':bnD(left(pop))+' দিন বাকি'}</div>${rk(bd[pop.id]||[]).slice(0,3).length>0&&html`<div class="text-xs text-center">এখন পর্যন্ত সেরা: ${rk(bd[pop.id]).slice(0,3).map(y=>y.name).join(', ')}</div>`}<button type="button" class="btn w-full" onClick=${close}>ঠিক আছে</button></div></div>`}</div>`}
+if(!dl.length)return null;
+const pill=first?html`<button type="button" onClick=${()=>setOp(v=>!v)} style=${{position:'fixed',top:'72px',right:'8px',zIndex:60,maxWidth:'62vw',padding:'6px 12px',borderRadius:'999px',border:'2px solid '+(red?'#b91c1c':'#b45309'),background:red?'#ef4444':'#facc15',color:red?'#fff':'#422006',fontWeight:700,fontSize:'12px',lineHeight:'1.3',boxShadow:'0 0 12px '+(red?'rgba(239,68,68,.9)':'rgba(250,204,21,.9)'),animation:'nblink 1s ease-in-out infinite'}}>📒 নোট জমা দাওনি · ${first.title} · ${left(first)<0?'সময় শেষ':left(first)===0?'আজই শেষ':bnD(left(first))+' দিন বাকি'}${pend.length>1?' (+'+bnD(pend.length-1)+')':''}</button>`:(okd.length>0?html`<button type="button" onClick=${()=>setOp(v=>!v)} style=${{position:'fixed',top:'72px',right:'8px',zIndex:60,padding:'6px 12px',borderRadius:'999px',border:'2px solid #15803d',background:'#22c55e',color:'#fff',fontWeight:700,fontSize:'12px'}}>✓ নোট জমা হয়েছে</button>`:null);
+return html`<div><style>@keyframes nblink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.05)}}</style>${pill}
+${op&&html`<div style=${{position:'fixed',top:'112px',right:'8px',left:'8px',zIndex:59,maxHeight:'60vh',overflowY:'auto'}} class="space-y-2"><div class="flex justify-end"><button type="button" class="btn !py-1 !px-3 text-sm" onClick=${()=>setOp(false)}>✕ বন্ধ</button></div>${dl.map(card)}</div>`}
+${dl.length>0&&html`<div class="space-y-3">${dl.map(card)}</div>`}</div>`}
 
 function Attend({classList,act,comps,toggle,markAll,markSome,L,setL}){
 const[sel,setSel]=useState(null),[q,setQ]=useState(''),[yt,setYt]=useState(false);
