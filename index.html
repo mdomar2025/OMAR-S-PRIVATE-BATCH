@@ -381,28 +381,42 @@ let f=out.filter(o=>o.full);if(f.length){const mx=Math.max(...f.map(o=>o.n));ret
 return out.map(o=>o.s)};
 const bnT=a=>new Date(a).toLocaleString('bn-BD',{timeZone:'Asia/Dhaka',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
 function YtImport({c,L,students,done,onApply}){
-const[busy,setBusy]=useState(false),[err,setErr]=useState(''),[res,setRes]=useState(null),[sel,setSel]=useState(new Set()),[key,setKey]=useState(()=>{try{return localStorage.getItem('yt_key')||''}catch(e){return''}}),[kin,setKin]=useState('');
+const[busy,setBusy]=useState(false),[err,setErr]=useState(''),[res,setRes]=useState(null),[sel,setSel]=useState(new Set()),[key,setKey]=useState(()=>{try{return localStorage.getItem('yt_key')||''}catch(e){return''}}),[kin,setKin]=useState(''),[cid,setCid]=useState(()=>{try{return localStorage.getItem('yt_cid')||''}catch(e){return''}}),[rsel,setRsel]=useState(new Set()),[rtxt,setRtxt]=useState(()=>{try{return localStorage.getItem('yt_rtxt')||'✅ হাজিরা সম্পন্ন'}catch(e){return'✅ হাজিরা সম্পন্ন'}}),[rb,setRb]=useState(false),[rmsg,setRmsg]=useState(''),[rdone,setRdone]=useState(()=>{try{return new Set(JSON.parse(localStorage.getItem('yt_rep_'+c.id)||'[]'))}catch(e){return new Set()}});
 const vid=ytId(c.youtube_url);
 const saveKey=()=>{const k=kin.trim();if(k.length<20)return alert('সঠিক API key বসান');try{localStorage.setItem('yt_key',k)}catch(e){}setKey(k);setKin('');setErr('')};
 const resetKey=()=>{try{localStorage.removeItem('yt_key')}catch(e){}setKey('');setRes(null);setErr('')};
 const proc=(list,trunc)=>{const due=dueAt(c,L),by={},amb=[],none=[];
 list.forEach(cm=>{const cands=classify(cm.text,students),t=new Date(cm.at).getTime();
-if(cands.length===1){const s=cands[0],o=by[s.id];if(!o||(!o.ok&&t<=due))by[s.id]={s,text:cm.text,at:cm.at,ok:t<=due}}
+if(cands.length===1){const s=cands[0],o=by[s.id];if(!o||(!o.ok&&t<=due))by[s.id]={s,id:cm.id,text:cm.text,at:cm.at,ok:t<=due}}
 else if(cands.length>1)amb.push({cm,cands});else none.push(cm)});
 setRes({by,amb,none,trunc,total:list.length,due});
-setSel(new Set(Object.values(by).filter(o=>o.ok&&!done.has(o.s.id)).map(o=>o.s.id)))};
+setSel(new Set(Object.values(by).filter(o=>o.ok&&!done.has(o.s.id)).map(o=>o.s.id)));setRsel(new Set(Object.values(by).filter(o=>o.ok&&!rdone.has(o.s.id)).map(o=>o.s.id)))};
 const run=async()=>{setBusy(true);setErr('');setRes(null);
 try{const all=[];let pt='',pg=0;
 do{const r=await fetch('https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId='+vid+'&maxResults=100&order=time&textFormat=plainText&key='+encodeURIComponent(key)+(pt?'&pageToken='+encodeURIComponent(pt):''));
 const j=await r.json();
 if(!r.ok){const rs=j.error&&j.error.errors&&j.error.errors[0]&&j.error.errors[0].reason;const m=(j.error&&j.error.message)||'';
 throw new Error(rs==='commentsDisabled'?'এই ভিডিওতে কমেন্ট বন্ধ আছে':rs==='videoNotFound'?'ভিডিও পাওয়া যায়নি (লিংক বা প্রাইভেসি দেখুন)':rs==='quotaExceeded'?'আজকের কোটা শেষ, কাল আবার চেষ্টা করুন':/key/i.test(m)?'API key ঠিক নয় বা YouTube Data API চালু নেই। নিচের “key বদলান” চাপুন।':(m||'ব্যর্থ হয়েছে'))}
-(j.items||[]).forEach(it=>{const x=it.snippet.topLevelComment.snippet;all.push({author:x.authorDisplayName,text:x.textDisplay,at:x.publishedAt})});
+(j.items||[]).forEach(it=>{const x=it.snippet.topLevelComment.snippet;all.push({id:it.snippet.topLevelComment.id,author:x.authorDisplayName,text:x.textDisplay,at:x.publishedAt})});
 pt=j.nextPageToken||'';pg++}while(pt&&pg<10);
 proc(all,!!pt)}catch(e){setErr(e.message||String(e))}
 setBusy(false)};
+const tr=id=>setRsel(o=>{const n=new Set(o);n.has(id)?n.delete(id):n.add(id);return n});
+const saveCid=()=>{const k=cid.trim();try{localStorage.setItem('yt_cid',k)}catch(e){}setCid(k)};
+const getTok=()=>new Promise((ok,no)=>{const go=()=>{try{window.google.accounts.oauth2.initTokenClient({client_id:cid.trim(),scope:'https://www.googleapis.com/auth/youtube.force-ssl',callback:r=>r.access_token?ok(r.access_token):no(new Error(r.error_description||r.error||'সাইন ইন হয়নি'))}).requestAccessToken()}catch(e){no(e)}};
+if(window.google&&window.google.accounts&&window.google.accounts.oauth2)return go();
+const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.onload=go;sc.onerror=()=>no(new Error('Google লোড হয়নি, ইন্টারনেট দেখুন'));document.head.appendChild(sc)});
+const sendRep=async()=>{const rs=rows.filter(o=>rsel.has(o.s.id)&&o.id&&!rdone.has(o.s.id));if(!rs.length)return alert('রিপ্লাইয়ের জন্য কাউকে নির্বাচন করা হয়নি');if(cid.trim().length<20)return alert('আগে Google Client ID বসান');
+const lines=rtxt.split('\n').map(x=>x.trim()).filter(Boolean);if(!lines.length)return alert('রিপ্লাইয়ের লেখা দিন');try{localStorage.setItem('yt_rtxt',rtxt)}catch(e){}
+setRb(true);setRmsg('');let ok=0,fail='';const dn=new Set(rdone);
+try{const tok=await getTok();
+for(const o of rs){const r=await fetch('https://www.googleapis.com/youtube/v3/comments?part=snippet',{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify({snippet:{parentId:o.id,textOriginal:lines[Math.floor(Math.random()*lines.length)]}})});
+if(!r.ok){const j=await r.json().catch(()=>({}));fail=(j.error&&j.error.message)||('ত্রুটি '+r.status);break}
+ok++;dn.add(o.s.id);setRdone(new Set(dn));try{localStorage.setItem('yt_rep_'+c.id,JSON.stringify([...dn]))}catch(e){}
+await new Promise(z=>setTimeout(z,2500))}}catch(e){fail=e.message||String(e)}
+setRsel(o=>{const n=new Set(o);dn.forEach(x=>n.delete(x));return n});setRmsg(ok+'টি রিপ্লাই গেছে'+(fail?' — থেমে গেছে: '+fail:''));setRb(false)};
 const tg=id=>setSel(o=>{const n=new Set(o);n.has(id)?n.delete(id):n.add(id);return n});
-const pick=(a,s)=>{const t=new Date(a.cm.at).getTime();setRes(r=>({...r,by:{...r.by,[s.id]:r.by[s.id]||{s,text:a.cm.text,at:a.cm.at,ok:t<=r.due}},amb:r.amb.filter(x=>x!==a)}));if(!done.has(s.id))setSel(o=>new Set(o).add(s.id))};
+const pick=(a,s)=>{const t=new Date(a.cm.at).getTime();setRes(r=>({...r,by:{...r.by,[s.id]:r.by[s.id]||{s,id:a.cm.id,text:a.cm.text,at:a.cm.at,ok:t<=r.due}},amb:r.amb.filter(x=>x!==a)}));if(!done.has(s.id))setSel(o=>new Set(o).add(s.id))};
 const rows=res?Object.values(res.by).sort((a,b)=>String(a.s.name).localeCompare(String(b.s.name),'bn')):[];
 const apply=()=>{const ids=[...sel].filter(id=>!done.has(id));if(!ids.length)return alert('কাউকে নির্বাচন করা হয়নি');onApply(ids);setRes(null);setSel(new Set())};
 return html`<div class="g p-3 space-y-3"><div class="font-bold">💬 ইউটিউব কমেন্ট থেকে হাজিরা</div>
@@ -411,14 +425,36 @@ ${!key?html`<div class="rounded-2xl border border-orange-200 bg-orange-50 p-3 sp
 ${err&&html`<div class="text-red-600 text-sm font-semibold">⚠ ${err}</div>`}
 ${res&&html`<div class="space-y-3"><div class="text-sm">মোট কমেন্ট: <b>${bnD(res.total)}</b>${res.trunc?' (প্রথম ১০০০টি দেখা হয়েছে)':''} · মিলেছে: <b>${bnD(rows.length)}</b> জন</div>
 ${rows.length===0&&html`<div class="text-center text-sm p-2">কোনো নাম মেলেনি</div>`}
-<div class="space-y-2">${rows.map(o=>{const dn=done.has(o.s.id),on=sel.has(o.s.id);return html`<button key=${o.s.id} type="button" disabled=${dn} onClick=${()=>tg(o.s.id)} class=${'w-full text-left rounded-2xl border px-3 py-2 flex items-center justify-between gap-2 '+(dn?'bg-slate-50 border-slate-200 opacity-70':on?'bg-green-50 border-green-300':'bg-white border-slate-200')}><span class="min-w-0"><span class="block font-semibold">${o.s.name}</span><span class="block text-xs text-blue-300 truncate">“${String(o.text).slice(0,60)}” · ${bnT(o.at)}</span><span class=${'block text-xs font-semibold '+(dn?'text-green-600':o.ok?'text-green-600':'text-orange-600')}>${dn?'✓ আগেই সম্পন্ন':o.ok?'সময়ের মধ্যে':'⚠ সময়ের পরে কমেন্ট করেছে'}</span></span><span class=${'text-xl w-9 h-9 shrink-0 flex items-center justify-center rounded-full '+(on?'bg-green-500 text-white':'bg-slate-100 text-slate-300')}>✓</span></button>`})}</div>
+<div class="space-y-2">${rows.map(o=>{const dn=done.has(o.s.id),on=sel.has(o.s.id),rr=rdone.has(o.s.id),ro=rsel.has(o.s.id);return html`<div key=${o.s.id} class="flex items-stretch gap-2"><button type="button" disabled=${dn} onClick=${()=>tg(o.s.id)} class=${'w-full text-left rounded-2xl border px-3 py-2 flex items-center justify-between gap-2 '+(dn?'bg-slate-50 border-slate-200 opacity-70':on?'bg-green-50 border-green-300':'bg-white border-slate-200')}><span class="min-w-0"><span class="block font-semibold">${o.s.name}</span><span class="block text-xs text-blue-300 truncate">“${String(o.text).slice(0,60)}” · ${bnT(o.at)}</span><span class=${'block text-xs font-semibold '+(dn?'text-green-600':o.ok?'text-green-600':'text-orange-600')}>${dn?'✓ আগেই সম্পন্ন':o.ok?'সময়ের মধ্যে':'⚠ সময়ের পরে কমেন্ট করেছে'}</span></span><span class=${'text-xl w-9 h-9 shrink-0 flex items-center justify-center rounded-full '+(on?'bg-green-500 text-white':'bg-slate-100 text-slate-300')}>✓</span></button><button type="button" disabled=${rr} onClick=${()=>tr(o.s.id)} class=${'shrink-0 w-14 rounded-2xl border text-xs font-semibold '+(rr?'bg-slate-50 border-slate-200 text-green-600':ro?'bg-blue-50 border-blue-300 text-blue-600':'bg-white border-slate-200 text-slate-400')}>${rr?'রিপ্লাই ✓':ro?'💬 হবে':'💬 না'}</button></div>`})}</div>
 ${rows.length>0&&html`<button type="button" class="btn w-full" onClick=${apply}>নির্বাচিত ${bnD([...sel].filter(id=>!done.has(id)).length)} জনকে ✓ দিন</button>`}
+${rows.length>0&&html`<div class="rounded-2xl border border-blue-200 bg-blue-50 p-3 space-y-2"><div class="font-semibold text-sm">💬 কমেন্টে অটো রিপ্লাই</div><div class="text-xs">ডানের 💬 বাটনে যাদের “হবে” দেখাচ্ছে শুধু তাদের কমেন্টে রিপ্লাই যাবে। হাজিরা আপনি আলাদা ভাবে দিন।</div>
+<input placeholder="Google Client ID (...apps.googleusercontent.com)" value=${cid} onInput=${e=>setCid(e.target.value)} onBlur=${saveCid}/>
+<textarea rows="3" value=${rtxt} onInput=${e=>setRtxt(e.target.value)} placeholder="প্রতি লাইনে একটি রিপ্লাই (এলোমেলো একটি যাবে)"></textarea>
+<button type="button" class="btn w-full" disabled=${rb} onClick=${sendRep}>${rb?'রিপ্লাই পাঠানো হচ্ছে...':'💬 নির্বাচিত '+bnD(rows.filter(o=>rsel.has(o.s.id)&&!rdone.has(o.s.id)).length)+' জনকে রিপ্লাই পাঠান'}</button>
+${rmsg&&html`<div class="text-sm font-semibold">${rmsg}</div>`}</div>`}
 ${res.amb.length>0&&html`<div class="space-y-2"><div class="font-semibold text-sm">একাধিক নামের সাথে মিলছে — কে, সিলেক্ট করুন</div>${res.amb.map((a,i)=>html`<div key=${i} class="rounded-2xl border border-orange-200 bg-orange-50 p-2 space-y-1"><div class="text-sm">“${String(a.cm.text).slice(0,60)}” <span class="text-xs text-blue-300">— ${a.cm.author}</span></div><div class="flex flex-wrap gap-2">${a.cands.map(s=>html`<button key=${s.id} type="button" class="tab g !py-1 !px-3 text-sm" onClick=${()=>pick(a,s)}>${s.name}</button>`)}</div></div>`)}</div>`}
 ${res.none.length>0&&html`<details><summary class="text-sm underline">মেলেনি (${bnD(res.none.length)}টি কমেন্ট)</summary><div class="space-y-1 mt-2">${res.none.slice(0,100).map((cm,i)=>html`<div key=${i} class="text-xs border-t border-slate-100 pt-1">${cm.author}: “${String(cm.text).slice(0,60)}”</div>`)}</div></details>`}
 </div>`}</div>`}
 
+function NoteCheck({students}){
+const[lab,setLab]=useState(''),[dp,setDp]=useState('10'),[pt,setPt]=useState({}),[ex,setEx]=useState({}),[q,setQ]=useState(''),[busy,setBusy]=useState('');
+const L=lab.trim(),key=id=>'note:'+L+':'+id;
+const load=async()=>{if(!L){setEx({});return}const r=await sb.from('xp_transactions').select('student_id,amount').like('ref_key','note:'+L+':%');const m={};(r.data||[]).forEach(x=>{m[x.student_id]=x.amount});setEx(m)};
+useEffect(()=>{const t=setTimeout(load,400);return()=>clearTimeout(t)},[lab]);
+const give=async s=>{if(!L)return alert('আগে অধ্যায়/নোটের নাম লিখুন');const v=parseInt(pt[s.id]!==undefined&&pt[s.id]!==''?pt[s.id]:dp,10);if(isNaN(v))return alert('পয়েন্ট সঠিক নয়');
+setBusy(s.id);const{error}=await sb.from('xp_transactions').insert({student_id:s.id,amount:v,reason:'নোট চেক: '+L,ref_key:key(s.id)});setBusy('');
+if(error)return alert(/duplicate|unique/i.test(error.message)?'এই অধ্যায়ে ইতিমধ্যে পয়েন্ট দেওয়া হয়েছে':'হয়নি: '+error.message);setEx(o=>({...o,[s.id]:v}))};
+const undo=async s=>{if(!confirm('“'+s.name+'” এর নোট চেকের পয়েন্ট ফেরত নেবেন?'))return;setBusy(s.id);const{error}=await sb.from('xp_transactions').delete().eq('ref_key',key(s.id));setBusy('');if(error)return alert('হয়নি: '+error.message);setEx(o=>{const n={...o};delete n[s.id];return n})};
+const nq=q.trim().toLowerCase();const list=[...students].sort((a,b)=>String(a.name).localeCompare(String(b.name),'bn')).filter(x=>!nq||String(x.name).toLowerCase().includes(nq));
+return html`<div class="g p-3 space-y-2"><div class="font-bold">📒 নোট চেক</div>
+<div class="text-xs text-blue-300">খাতা দেখে যাকে খুশি, যখন খুশি পয়েন্ট দিন। পয়েন্ট সঙ্গে সঙ্গে স্টুডেন্টের XP ও লিডারবোর্ডে যোগ হয়।</div>
+<input placeholder="অধ্যায়/নোটের নাম (যেমন: অধ্যায় ৩)" value=${lab} onInput=${e=>setLab(e.target.value)}/>
+<div class="flex items-center gap-2 text-sm"><span>ডিফল্ট পয়েন্ট</span><input class="!w-20" inputmode="numeric" value=${dp} onInput=${e=>setDp(e.target.value)}/></div>
+<input placeholder="🔍 নাম খুঁজুন" value=${q} onInput=${e=>setQ(e.target.value)}/>
+<div class="space-y-2">${list.map(x=>{const got=ex[x.id]!==undefined;return html`<div key=${x.id} class=${'flex items-center gap-2 rounded-2xl border px-3 py-2 '+(got?'bg-green-50 border-green-300':'bg-white border-slate-200')}><span class="flex-1 min-w-0 font-semibold truncate">${x.name}</span>${got?html`<span class="text-sm font-semibold text-green-600">+${ex[x.id]} XP ✓</span><button type="button" disabled=${busy===x.id} class="underline text-xs" onClick=${()=>undo(x)}>ফেরত</button>`:html`<input class="!w-16 !py-1 text-center" inputmode="numeric" placeholder=${dp} value=${pt[x.id]===undefined?'':pt[x.id]} onInput=${e=>setPt(o=>({...o,[x.id]:e.target.value}))}/><button type="button" disabled=${busy===x.id} class="btn !py-1 !px-3" onClick=${()=>give(x)}>✓</button>`}</div>`})}</div></div>`}
+
 function Attend({classList,act,comps,toggle,markAll,markSome,L,setL}){
-const[sel,setSel]=useState(null),[q,setQ]=useState(''),[yt,setYt]=useState(false);
+const[sel,setSel]=useState(null),[q,setQ]=useState(''),[yt,setYt]=useState(false),[nc,setNc]=useState(false);
 const c=classList.find(x=>x.id===sel)||classList[0];
 if(!c)return html`<div class="g p-4 text-center">এখনো কোনো ক্লাস প্রকাশ করা হয়নি। আগে “ক্লাস” ট্যাব থেকে ক্লাস যোগ করুন।</div>`;
 const done=comps[c.id]||new Set();
@@ -432,6 +468,7 @@ return html`<div class="space-y-3" style=${{overflowAnchor:'none'}}>
 <div class="flex items-center justify-between gap-2"><b>${bnD(done.size)}/${bnD(act.length)} জন সম্পন্ন</b><button type="button" class="underline text-xs" onClick=${()=>editLimFor(c,L,setL)}>⏱ সময়সীমা বদলান</button></div>
 <input placeholder="🔍 নাম খুঁজুন" value=${q} onInput=${e=>setQ(e.target.value)}/>${ytId(c.youtube_url)&&html`<button type="button" class="btn w-full" onClick=${()=>setYt(v=>!v)}>💬 ইউটিউব কমেন্ট থেকে হাজিরা নিন</button>`}
 </div>
+<button type="button" class="tab g w-full" onClick=${()=>setNc(v=>!v)}>${nc?'▲ নোট চেক বন্ধ করুন':'📒 নোট চেক (পয়েন্ট দিন)'}</button>${nc&&html`<${NoteCheck} students=${act}/>`}
 ${yt&&ytId(c.youtube_url)&&html`<${YtImport} key=${c.id} c=${c} L=${L} students=${act} done=${done} onApply=${ids=>markSome(c,ids)}/>`}
 <div class="space-y-2">${list.map(x=>{const on=done.has(x.id);return html`<button key=${x.id} type="button" onClick=${()=>toggle(c,x)} class=${'w-full flex items-center justify-between gap-3 rounded-2xl border px-4 '+(on?'bg-green-50 border-green-300':'bg-white border-slate-200')} style=${{minHeight:'60px'}}><span class="text-lg font-semibold text-left">${x.name}</span><span class=${'text-2xl w-10 h-10 shrink-0 flex items-center justify-center rounded-full '+(on?'bg-green-500 text-white':'bg-slate-100 text-slate-300')}>✓</span></button>`})}${list.length===0&&html`<div class="g p-4 text-center">কোনো শিক্ষার্থী পাওয়া যায়নি</div>`}</div>
 <div class="flex gap-2"><button type="button" class="tab g flex-1" onClick=${()=>markAll(c,true)}>সবাইকে ✓ দিন</button><button type="button" class="tab g flex-1" onClick=${()=>markAll(c,false)}>সব ✓ তুলে নিন</button></div>
