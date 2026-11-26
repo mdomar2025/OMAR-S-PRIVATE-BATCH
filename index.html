@@ -441,15 +441,20 @@ const[sid,setSid]=useState(''),[ex,setEx]=useState({}),[q,setQ]=useState(''),[bu
 const dd=(dls||[]).find(x=>x.id===sid)||null,key=id=>'note:'+dd.title+':'+id;
 const load=async()=>{if(!dd){setEx({});return}const r=await sb.from('xp_transactions').select('student_id,amount').like('ref_key','note:'+dd.title+':%');const m={};(r.data||[]).forEach(x=>{m[x.student_id]=x.amount});setEx(m)};
 useEffect(()=>{load()},[sid,(dls||[]).length]);
-const give=async s=>{if(!dd)return;const v=Number(dd.pts)||0;setBusy(s.id);const{error}=await sb.from('xp_transactions').insert({student_id:s.id,amount:v,reason:'নোট চেক: '+dd.title,ref_key:key(s.id)});setBusy('');
-if(error)return alert(/duplicate|unique/i.test(error.message)?'ইতিমধ্যে পয়েন্ট দেওয়া হয়েছে':'হয়নি: '+error.message);setEx(o=>({...o,[s.id]:v}))};
-const undo=async s=>{setBusy(s.id);const{error}=await sb.from('xp_transactions').delete().eq('ref_key',key(s.id));setBusy('');if(error)return alert('হয়নি: '+error.message);setEx(o=>{const n={...o};delete n[s.id];return n})};
+const setNote=async(s,on)=>{const v=Number(dd.pts)||0;setBusy(s.id);let err=null;
+const r=await sb.rpc('note_toggle',{sid:s.id,lbl:dd.title,amt:v,give:on});
+if(r.error){if(/note_toggle|function|schema cache/i.test(r.error.message)){
+if(on){const x=await sb.from('xp_transactions').insert({student_id:s.id,amount:v,reason:'নোট চেক: '+dd.title,ref_key:key(s.id)});err=x.error}
+else{const x=await sb.from('xp_transactions').delete().eq('ref_key',key(s.id)).select('id');err=x.error||((x.data||[]).length?null:{message:'মোছা যায়নি (ডাটাবেস অনুমতি দিচ্ছে না)। নতুন SQL চালান।'})}}else err=r.error}
+setBusy('');if(err)return alert('হয়নি: '+err.message);
+setEx(o=>{const n={...o};if(on)n[s.id]=v;else delete n[s.id];return n})};
+const give=s=>dd&&setNote(s,true),undo=s=>dd&&setNote(s,false);
 const nq=q.trim().toLowerCase();const list=[...students].sort((a,b)=>String(a.name).localeCompare(String(b.name),'bn')).filter(x=>!nq||String(x.name).toLowerCase().includes(nq));
 return html`<div class="g p-3 space-y-2"><div class="font-bold">📒 নোট চেক</div>
-<div class="text-xs text-blue-300">কোন নোট চেক করছেন তা বাছুন। যে নাম ট্যাপ করবেন তার পয়েন্ট যোগ হবে (সবুজ ✓), আবার ট্যাপ করলে পয়েন্ট কেটে যাবে।</div>
+<div class="text-xs text-blue-300">কোন নোট চেক করছেন তা বাছুন। যে নাম ট্যাপ করবেন সে নীল ✓ হয়ে পয়েন্ট পাবে। লাল ✕ মানে জমা দেয়নি। নীলে আবার ট্যাপ করলে পয়েন্ট কেটে লাল হয়ে যাবে।</div>
 ${(dls||[]).length===0?html`<div class="text-sm text-orange-600">আগে উপরে নোটের তারিখ ও পয়েন্ট প্রকাশ করুন।</div>`:html`<select value=${sid} onChange=${e=>setSid(e.target.value)}><option value="">— কোন নোট? —</option>${dls.map(x=>html`<option key=${x.id} value=${x.id}>${x.title} (${x.due} · ${x.pts||0} XP)</option>`)}</select>`}
 ${dd&&html`<div class="text-sm font-semibold">${bnD(Object.keys(ex).length)}/${bnD(students.length)} জন জমা দিয়েছে · প্রতিজন ${bnD(dd.pts||0)} XP</div><input placeholder="🔍 নাম খুঁজুন" value=${q} onInput=${e=>setQ(e.target.value)}/>
-<div class="space-y-2">${list.map(x=>{const got=ex[x.id]!==undefined;return html`<button key=${x.id} type="button" disabled=${busy===x.id} onClick=${()=>got?undo(x):give(x)} class=${'w-full flex items-center justify-between gap-3 rounded-2xl border px-4 text-left '+(got?'bg-green-50 border-green-300':'bg-white border-slate-200')} style=${{minHeight:'60px'}}><span class="min-w-0"><span class="block text-lg font-semibold truncate">${x.name}</span>${got&&html`<span class="block text-xs font-semibold text-green-600">+${bnD(ex[x.id])} XP দেওয়া হয়েছে</span>`}</span><span class=${'text-2xl w-10 h-10 shrink-0 flex items-center justify-center rounded-full '+(got?'bg-green-500 text-white':'bg-slate-100 text-slate-300')}>✓</span></button>`})}</div>`}</div>`}
+<div class="space-y-2">${list.map(x=>{const got=ex[x.id]!==undefined;return html`<button key=${x.id} type="button" disabled=${busy===x.id} onClick=${()=>got?undo(x):give(x)} class=${'w-full flex items-center justify-between gap-3 rounded-2xl border-2 px-4 text-left '+(got?'bg-blue-50 border-blue-400':'bg-red-50 border-red-300')} style=${{minHeight:'60px'}}><span class="min-w-0"><span class="block text-lg font-semibold truncate">${x.name}</span><span class=${'block text-xs font-semibold '+(got?'text-blue-600':'text-red-600')}>${got?'✓ জমা দিয়েছে · +'+bnD(ex[x.id])+' XP':'জমা দেয়নি'}</span></span><span class=${'text-2xl w-10 h-10 shrink-0 flex items-center justify-center rounded-full '+(got?'bg-blue-500 text-white':'bg-red-500 text-white')}>${got?'✓':'✕'}</span></button>`})}</div>`}</div>`}
 
 const waShare=c=>{const u=location.origin+location.pathname;const t='📚 নতুন ক্লাস: '+c.title+'\n📅 '+String(c.class_date||'').slice(0,10)+(c.youtube_url?'\n▶ '+c.youtube_url:'')+'\n\nক্লাস দেখে অ্যাপে হাজিরা নিশ্চিত করো: '+u;window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')};
 function NoteAdmin({students}){
