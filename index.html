@@ -464,7 +464,7 @@ ${dl.map(x=>html`<div key=${x.id} class="flex justify-between items-center borde
 <${NoteCheck} students=${students} dls=${dl}/></div>`}
 function NoteStudent({p}){
 const[dl,setDl]=useState([]),[bd,setBd]=useState({}),[pop,setPop]=useState(null);
-useEffect(()=>{(async()=>{try{const r=await sb.from('app_settings').select('value').eq('key','note_deadlines').maybeSingle();const all=Array.isArray(r.data&&r.data.value)?r.data.value:[];const lim=new Date(Date.now()-30*864e5).toLocaleDateString('en-CA');const list=all.filter(x=>x.due>=lim);setDl(list);
+useEffect(()=>{(async()=>{try{let all=[];const rp=await sb.rpc('get_note_deadlines');if(!rp.error&&Array.isArray(rp.data))all=rp.data;else{const r=await sb.from('app_settings').select('value').eq('key','note_deadlines').maybeSingle();all=Array.isArray(r.data&&r.data.value)?r.data.value:[]}const lim=new Date(Date.now()-30*864e5).toLocaleDateString('en-CA');const list=all.filter(x=>x.due>=lim);setDl(list);
 const m={};await Promise.all(list.map(async x=>{const b=await sb.rpc('note_board',{lbl:x.title});if(!b.error)m[x.id]=b.data||[]}));setBd(m);
 let seen={};try{seen=JSON.parse(localStorage.getItem('nd_seen')||'{}')}catch(e){}const f=list.find(x=>x.due>=today()&&seen[x.id]!==today());if(f)setPop(f)}catch(e){}})()},[]);
 const close=()=>{try{const s=JSON.parse(localStorage.getItem('nd_seen')||'{}');s[pop.id]=today();localStorage.setItem('nd_seen',JSON.stringify(s))}catch(e){}setPop(null)};
