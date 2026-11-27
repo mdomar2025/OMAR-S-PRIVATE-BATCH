@@ -152,7 +152,28 @@ html.mob #root .text-lg{font-size:20px!important}
 html.mob .g.p-4,html.mob .g.p-3{padding:16px!important}
 html.mob input,html.mob select,html.mob textarea{min-height:50px;font-size:16px!important}
 html.mob input[type=checkbox],html.mob input[type=radio]{min-height:0}
-</style></head>
+</style><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,600;1,500&family=Great+Vibes&display=swap" rel="stylesheet">
+<style id="adm-css">
+body.adm-body{background:radial-gradient(900px 420px at 0% -5%,#e0e7ff 0%,transparent 60%),radial-gradient(700px 360px at 100% 0%,#fde9c4 0%,transparent 55%),#f5f6fb!important;color:#1b1f3b!important}
+.adm-hero{border-radius:26px;padding:18px 18px 16px;margin-bottom:14px;color:#fff;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 55%,#4338ca 100%);position:relative;overflow:hidden;box-shadow:0 16px 32px rgba(49,46,129,.3)}
+.adm-hero:after{content:'';position:absolute;right:-34px;top:-34px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(250,204,21,.6),transparent 70%)}
+.adm-hero small{opacity:.78;font-size:12px;letter-spacing:.03em}.adm-hero h1{font-size:23px;font-weight:800;margin:3px 0 1px;position:relative}.adm-hero .d{font-size:12px;opacity:.82;position:relative}
+.adm-ui .g{border-radius:20px!important;border:1px solid #e3e5f4!important;border-left:5px solid #6366f1!important;box-shadow:0 10px 24px rgba(49,46,129,.07)!important;color:#1b1f3b!important;background:#fff!important}
+.adm-ui .btn{background:linear-gradient(135deg,#4338ca,#6366f1)!important;border-radius:14px!important;box-shadow:0 8px 18px rgba(67,56,202,.28)!important;color:#fff!important}
+.adm-ui .gold{color:#4338ca!important}.adm-ui .text-blue-200,.adm-ui .text-blue-300{color:#6b709a!important}
+.adm-ui .tab{border-radius:999px!important;font-weight:700;padding:.5rem 1rem!important}
+.adm-ui .tab.g{background:#fff!important;color:#4a5078!important;border:1px solid #dcdff2!important;border-left:1px solid #dcdff2!important;box-shadow:none!important}
+.adm-ui .tab.on{background:linear-gradient(135deg,#1e1b4b,#4338ca)!important;color:#fff!important;border:0!important;box-shadow:0 8px 16px rgba(67,56,202,.32)!important}
+.adm-ui input,.adm-ui select,.adm-ui textarea{border-radius:14px!important;border:1.5px solid #dcdff2!important;background:#fbfbff!important;color:#1b1f3b!important}
+.adm-ui input:focus,.adm-ui select:focus,.adm-ui textarea:focus{outline:none;border-color:#6366f1!important;box-shadow:0 0 0 4px rgba(99,102,241,.15)}
+.adm-ui .underline{color:#4338ca}
+.adm-nav{position:fixed;left:50%;transform:translateX(-50%);width:min(560px,calc(100% - 20px));bottom:calc(10px + env(safe-area-inset-bottom));z-index:80;display:flex;gap:2px;padding:7px;border-radius:28px;background:rgba(30,27,75,.97);backdrop-filter:blur(14px);box-shadow:0 16px 36px rgba(30,27,75,.45)}
+.adm-nav button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px;border-radius:20px;color:#c7c9ee;font-size:10.5px;font-weight:700;min-height:0!important;white-space:nowrap}
+.adm-nav button b{font-size:20px;line-height:1.1}.adm-nav button.on2{background:linear-gradient(135deg,#facc15,#f59e0b);color:#1e1b4b}
+.adm-more{position:fixed;left:50%;transform:translateX(-50%);width:min(560px,calc(100% - 20px));bottom:calc(88px + env(safe-area-inset-bottom));z-index:79;display:flex;gap:8px;padding:10px;border-radius:22px;background:#fff;border:1px solid #dcdff2;box-shadow:0 16px 34px rgba(30,27,75,.25)}
+.adm-more button{flex:1;padding:12px;border-radius:16px;background:#f1f2fb;color:#1b1f3b;font-weight:700}
+</style>
+</head>
 <body><div id="root"></div>
 <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
@@ -198,15 +219,105 @@ ${F.xp!==false&&html`<div class="g divide-y divide-white/10"><div class="p-3 fon
 <script>const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const UIx={classes:'ক্লাস',comm:'কমিউনিটি',rew:'রিওয়ার্ড',ana:'অ্যানালিটিক্স',set:'সেটিংস'};
 const sv=async(k,v)=>{const{error}=await sb.from('app_settings').upsert({key:k,value:v,updated_at:new Date().toISOString()});alert(error?error.message:'সংরক্ষিত ✓')};
-function ShellX({p}){const adm=p.role==='admin',[m,setM]=useState('ch'),[F,setF]=useState({}),[U,setU]=useState({});
+function ShellX({p}){const adm=p.role==='admin',[m,setM]=useState('ch'),[F,setF]=useState({}),[U,setU]=useState({}),[more,setMore]=useState(false);
+useEffect(()=>{if(!adm)return;document.body.classList.add('adm-body');return()=>document.body.classList.remove('adm-body')},[adm]);
 useEffect(()=>{sb.from('app_settings').select('key,value').in('key',['features','ui']).then(r=>(r.data||[]).forEach(x=>x.key==='features'?setF(x.value):setU(x.value)))},[]);
 useEffect(()=>{const a=U.accent;let s=document.getElementById('thx');if(!s){s=document.createElement('style');s.id='thx';document.head.appendChild(s)}s.textContent=a?`.gold{color:${a}!important}.btn{background:${a}!important;color:#111!important}`:''},[U.accent]);
 const L=k=>(U.labels&&U.labels[k])||UIx[k];
 const tabs=[['ch','চ্যালেঞ্জ'],...(adm?[['classes','ঘোষণা ও ক্লাস']]:[]),...(adm?[['guide','📖 গাইডলাইন']]:[]),...(adm?[['rec','🎥 স্ক্রিন রেকর্ড']]:[]),['comm','কমিউনিটি'],...(adm?[['ana',L('ana')],['set',L('set')]]:[['rew',L('rew')]])].filter(([k])=>k==='ch'||adm||F[k]!==false);
+const AN=[['ch','🏆','চ্যালেঞ্জ'],['classes','📣','ক্লাস'],['cert','🎓','সার্টিফিকেট'],['comm','💬','কমিউনিটি'],['set','⚙️','সেটিংস']],MO=[['ana','📊','রিপোর্ট'],['guide','📖','গাইডলাইন'],['rec','🎥','স্ক্রিন রেকর্ড']];
+const HT={ch:['🏆','চ্যালেঞ্জ ও হাজিরা','ক্লাস, হাজিরা, নোট, পরীক্ষা ও র‍্যাংকিং'],classes:['📣','ঘোষণা ও ক্লাস','নতুন ক্লাস প্রকাশ ও ঘোষণা'],cert:['🎓','সার্টিফিকেট','অধ্যায় শেষে সার্টিফিকেট দিন'],guide:['📖','গাইডলাইন','স্টুডেন্টদের জন্য নির্দেশনা'],rec:['🎥','স্ক্রিন রেকর্ড','ক্লাস রেকর্ড করুন'],comm:['💬','কমিউনিটি','পোস্ট ও আলোচনা'],ana:['📊','রিপোর্ট','পরিসংখ্যান এক নজরে'],set:['⚙️','সেটিংস','ফিচার, লেভেল ও ব্যাজ']};
+if(adm){const h=HT[m]||HT.ch,dt=new Date().toLocaleDateString('bn-BD',{weekday:'long',day:'numeric',month:'long',timeZone:'Asia/Dhaka'});
+return html`<div class="adm-ui" style=${{paddingBottom:'120px'}}><div class="adm-hero"><small>অ্যাডমিন প্যানেল · ওমর স্যার</small><h1>${h[0]} ${h[1]}</h1><div class="d">${h[2]}</div><div class="d" style=${{marginTop:'6px'}}>📅 ${dt}</div></div>
+${!adm&&html`<${Remind} p=${p} U=${U}/>`}
+${adm&&html`<div style=${{display:m==='rec'?'block':'none'}}><${Recorder}/></div>`}
+${m==='ch'?(adm?html`<${Admin}/>`:html`<${Student} p=${p}/>`):m==='classes'?(adm?html`<${AdminPlus} F=${F} setF=${setF}/>`:html`<${StudentPlus} p=${p} F=${F}/>`):m==='cert'?html`<${CertAdmin}/>`:m==='rec'?null:m==='guide'?(adm?html`<${GuideAdmin}/>`:null):m==='comm'?html`<${Comm} p=${p} adm=${adm}/>`:m==='rew'?html`<${Rewards} p=${p}/>`:m==='ana'?html`<${Ana}/>`:html`<${Settings} F=${F} setF=${setF} U=${U} setU=${setU}/>`}
+${more&&html`<div class="adm-more">${MO.map(([k,i,l])=>html`<button key=${k} type="button" onClick=${()=>{setM(k);setMore(false)}}><b>${i}</b> ${l}</button>`)}</div>`}
+<div class="adm-nav">${AN.map(([k,i,l])=>html`<button key=${k} type="button" class=${m===k?'on2':''} onClick=${()=>{setM(k);setMore(false)}}><b>${i}</b>${l}</button>`)}<button type="button" class=${(m==='ana'||m==='guide'||m==='rec')?'on2':''} onClick=${()=>setMore(v=>!v)}><b>⋯</b>আরও</button></div></div>`}
 return html`<div><div class="flex gap-2 mb-4 overflow-x-auto">${tabs.map(([k,l])=>html`<button key=${k} class=${'tab whitespace-nowrap '+(m===k?'on':'g')} onClick=${()=>setM(k)}>${l}</button>`)}</div>
 ${!adm&&html`<${Remind} p=${p} U=${U}/>`}
 ${adm&&html`<div style=${{display:m==='rec'?'block':'none'}}><${Recorder}/></div>`}
 ${m==='ch'?(adm?html`<${Admin}/>`:html`<${Student} p=${p}/>`):m==='classes'?(adm?html`<${AdminPlus} F=${F} setF=${setF}/>`:html`<${StudentPlus} p=${p} F=${F}/>`):m==='rec'?null:m==='guide'?(adm?html`<${GuideAdmin}/>`:null):m==='comm'?html`<${Comm} p=${p} adm=${adm}/>`:m==='rew'?html`<${Rewards} p=${p}/>`:m==='ana'?html`<${Ana}/>`:html`<${Settings} F=${F} setF=${setF} U=${U} setU=${setU}/>`}</div>`}
+const CERT_FONTS=()=>{if(document.getElementById('cert-fonts'))return;const l=document.createElement('link');l.id='cert-fonts';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,600;1,500&family=Great+Vibes&display=swap';document.head.appendChild(l)};
+const certInfo=(c,n)=>{const d=new Date(c.issued_on||c.created_at||Date.now());const ds=isNaN(d)?'':d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});return{name:String(n||'').trim(),title:String(c.title||'').trim(),date:ds,id:String(c.code||('OPB-'+String(c.id||'0000').replace(/-/g,'').slice(0,8).toUpperCase()))}};
+const drawCert=async(c,n)=>{CERT_FONTS();const I=certInfo(c,n);
+try{await Promise.all(['700 80px Cinzel','500 40px Cinzel','italic 500 40px "Cormorant Garamond"','600 40px "Cormorant Garamond"','100px "Great Vibes"','700 40px "Hind Siliguri"'].map(f=>document.fonts.load(f,'Aa অ')));await document.fonts.ready}catch(e){}
+const W=2000,H=1414,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+const NV='#14123a',IN='#312e81';
+const gold=(a,b,c2,d)=>{const g=x.createLinearGradient(a,b,c2,d);[[0,'#8a6414'],[.28,'#e9c65c'],[.5,'#fff1b5'],[.72,'#c9971f'],[1,'#7a560f']].forEach(s=>g.addColorStop(s[0],s[1]));return g};
+const goldD=(a,b,c2,d)=>{const g=x.createLinearGradient(a,b,c2,d);[[0,'#7a560f'],[.3,'#b8860b'],[.5,'#d4a017'],[.7,'#b8860b'],[1,'#7a560f']].forEach(s=>g.addColorStop(s[0],s[1]));return g};
+const spaced=(t,cx,y,gap)=>{const ch=[...t];const ws=ch.map(k=>x.measureText(k).width);const tot=ws.reduce((a,b)=>a+b,0)+gap*(ch.length-1);let px=cx-tot/2;x.textAlign='left';ch.forEach((k,i)=>{x.fillText(k,px,y);px+=ws[i]+gap});x.textAlign='center'};
+const fit=(t,fam,wt,mx,start,sty)=>{let s=start;do{x.font=(sty||'')+' '+wt+' '+s+'px '+fam;s-=2}while(x.measureText(t).width>mx&&s>24)};
+x.textAlign='center';x.textBaseline='alphabetic';
+x.fillStyle=NV;x.fillRect(0,0,W,H);
+x.strokeStyle=gold(0,0,W,H);x.lineWidth=7;x.strokeRect(24,24,W-48,H-48);
+x.strokeStyle=gold(W,0,0,H);x.lineWidth=2;x.strokeRect(38,38,W-76,H-76);
+const bg=x.createRadialGradient(W/2,H/2,200,W/2,H/2,1250);bg.addColorStop(0,'#fffef8');bg.addColorStop(1,'#f5ebcf');x.fillStyle=bg;x.fillRect(50,50,W-100,H-100);
+x.save();x.beginPath();x.rect(50,50,W-100,H-100);x.clip();x.lineWidth=1.3;
+for(let k=0;k<52;k++){x.strokeStyle='rgba(180,130,20,'+(0.05+0.07*Math.sin(k/6)**2)+')';x.beginPath();for(let t=0;t<=W;t+=8){const y=H/2+Math.sin(t/120+k*.33)*(60+k*7.5)*Math.cos(t/640+k*.09);t?x.lineTo(t,y):x.moveTo(t,y)}x.stroke()}
+x.globalAlpha=.035;x.fillStyle='#b8860b';x.font='700 760px Cinzel, serif';x.fillText('★',W/2,H/2+260);x.globalAlpha=1;x.restore();
+x.strokeStyle=gold(0,0,W,0);x.lineWidth=5;x.strokeRect(84,84,W-168,H-168);x.lineWidth=1.6;x.strokeRect(100,100,W-200,H-200);
+[[84,84,0],[W-84,84,90],[W-84,H-84,180],[84,H-84,270]].forEach(([cx,cy,r])=>{x.save();x.translate(cx,cy);x.rotate(r*Math.PI/180);x.strokeStyle=gold(0,0,120,120);x.lineWidth=4;[34,62,90].forEach(R=>{x.beginPath();x.arc(0,0,R,0,Math.PI/2);x.stroke()});x.fillStyle=gold(0,0,60,60);x.beginPath();x.arc(0,0,14,0,Math.PI*2);x.fill();x.fillStyle=NV;x.beginPath();x.arc(0,0,6,0,Math.PI*2);x.fill();x.restore()});
+const lg=document.querySelector('img[src^="data:image"]');
+x.save();x.beginPath();x.arc(W/2,205,78,0,Math.PI*2);x.closePath();x.clip();
+if(lg&&lg.complete&&lg.naturalWidth){x.drawImage(lg,W/2-78,205-78,156,156)}else{x.fillStyle=NV;x.fillRect(W/2-78,127,156,156);x.fillStyle='#f4d675';x.font='700 90px serif';x.fillText('★',W/2,235)}x.restore();
+x.strokeStyle=gold(W/2-90,115,W/2+90,295);x.lineWidth=9;x.beginPath();x.arc(W/2,205,86,0,Math.PI*2);x.stroke();
+x.fillStyle=NV;x.font='700 38px Cinzel, serif';spaced("OMAR'S PRIVATE BATCH",W/2,336,12);
+const tg=x.createLinearGradient(0,380,0,480);tg.addColorStop(0,IN);tg.addColorStop(1,NV);x.fillStyle=tg;x.font='700 146px Cinzel, serif';spaced('CERTIFICATE',W/2,480,14);
+x.fillStyle=goldD(W/2-300,0,W/2+300,0);x.font='700 46px Cinzel, serif';spaced('OF COMPLETION',W/2,548,20);
+x.strokeStyle=gold(W/2-380,0,W/2+380,0);x.lineWidth=3;x.beginPath();x.moveTo(W/2-380,592);x.lineTo(W/2-34,592);x.moveTo(W/2+34,592);x.lineTo(W/2+380,592);x.stroke();
+x.fillStyle=gold(W/2-20,570,W/2+20,614);x.beginPath();x.moveTo(W/2,574);x.lineTo(W/2+20,592);x.lineTo(W/2,610);x.lineTo(W/2-20,592);x.closePath();x.fill();
+x.fillStyle='#5b5a7a';x.font='italic 500 46px "Cormorant Garamond", Georgia, serif';x.fillText('This certificate is proudly presented to',W/2,668);
+fit(I.name||'Student Name','"Great Vibes","Hind Siliguri",cursive','',1500,170);const ng=x.createLinearGradient(0,720,0,810);ng.addColorStop(0,'#1e1b5a');ng.addColorStop(1,'#4338ca');x.fillStyle=ng;x.fillText(I.name||'Student Name',W/2,812);
+x.strokeStyle=gold(W/2-700,0,W/2+700,0);x.lineWidth=3;x.beginPath();x.moveTo(W/2-700,850);x.lineTo(W/2+700,850);x.stroke();
+x.fillStyle='#5b5a7a';x.font='italic 500 44px "Cormorant Garamond", Georgia, serif';x.fillText('for successfully completing the chapter',W/2,918);
+fit('“'+(I.title||'Chapter')+'”','Cinzel, serif','700',1500,80);x.fillStyle=IN;x.fillText('“'+(I.title||'Chapter')+'”',W/2,1000);
+x.fillStyle='#5b5a7a';x.font='italic 500 38px "Cormorant Garamond", Georgia, serif';x.fillText('with dedication, discipline and a commitment to excellence in learning.',W/2,1066);
+x.fillStyle='#8a6a1c';x.font='600 33px "Hind Siliguri", sans-serif';x.fillText('অভিনন্দন! আপনার নিষ্ঠা ও পরিশ্রমের স্বীকৃতিস্বরূপ এই সনদ প্রদান করা হলো।',W/2,1110);
+// seal
+const sx=W/2,sy=1203;x.beginPath();for(let k=0;k<64;k++){const a=k/64*Math.PI*2,r=k%2?74:84;x.lineTo(sx+Math.cos(a)*r,sy+Math.sin(a)*r)}x.closePath();x.fillStyle=gold(sx-84,sy-84,sx+84,sy+84);x.fill();
+x.beginPath();x.arc(sx,sy,62,0,Math.PI*2);x.fillStyle=NV;x.fill();x.strokeStyle=gold(sx-62,sy-62,sx+62,sy+62);x.lineWidth=4;x.stroke();x.beginPath();x.arc(sx,sy,52,0,Math.PI*2);x.lineWidth=1.5;x.stroke();
+x.fillStyle=gold(sx-30,sy-40,sx+30,sy+20);x.font='700 70px serif';x.fillText('★',sx,sy+22);
+// date + signature
+x.fillStyle=NV;x.font='600 44px "Cormorant Garamond", Georgia, serif';x.fillText(I.date,420,1214);
+x.strokeStyle=gold(230,0,610,0);x.lineWidth=2.5;x.beginPath();x.moveTo(230,1232);x.lineTo(610,1232);x.stroke();x.fillStyle='#6b6a8c';x.font='500 22px Cinzel, serif';spaced('DATE OF ISSUE',420,1268,5);
+x.fillStyle=IN;x.font='96px "Great Vibes", cursive';x.fillText('Omar',W-420,1218);
+x.strokeStyle=gold(W-610,0,W-230,0);x.beginPath();x.moveTo(W-610,1232);x.lineTo(W-230,1232);x.stroke();x.fillStyle='#6b6a8c';x.font='500 22px Cinzel, serif';spaced('INSTRUCTOR',W-420,1268,5);
+x.fillStyle='#8b8aa6';x.font='500 21px Cinzel, serif';spaced('CERTIFICATE ID  '+I.id,W/2,1316,4);
+return cv};
+const showCert=async(c,n)=>{const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:2000;background:rgba(10,10,30,.88);overflow:auto;padding:14px;display:flex;flex-direction:column;align-items:center;gap:12px';ov.innerHTML='<div style="color:#fff;margin-top:40px">⏳ সার্টিফিকেট তৈরি হচ্ছে...</div>';document.body.appendChild(ov);
+try{const cv=await drawCert(c,n),url=cv.toDataURL('image/png'),fn='Certificate-'+String(n||'student').replace(/[^\wঀ-৿]+/g,'_')+'.png';ov.innerHTML='';
+const im=document.createElement('img');im.src=url;im.style.cssText='width:100%;max-width:980px;border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.5);background:#fff';ov.appendChild(im);
+const bar=document.createElement('div');bar.style.cssText='display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding-bottom:30px';
+const mk=(t,f,bg)=>{const b=document.createElement('button');b.textContent=t;b.style.cssText='padding:12px 18px;border-radius:14px;font-weight:700;font-size:15px;color:#fff;background:'+bg;b.onclick=f;bar.appendChild(b)};
+mk('⬇ ডাউনলোড (ছবি)',()=>{const a=document.createElement('a');a.href=url;a.download=fn;document.body.appendChild(a);a.click();a.remove()},'linear-gradient(135deg,#4338ca,#6366f1)');
+mk('🖨 PDF / প্রিন্ট',()=>{const w=window.open('','_blank');if(!w)return alert('পপআপ অনুমতি দিন');w.document.write('<html><head><title>'+esc(fn)+'</title><style>@page{size:A4 landscape;margin:0}html,body{margin:0}img{width:100vw;display:block}</style></head><body><img src="'+url+'"><script>window.onload=function(){setTimeout(function(){print()},300)}<\/script></body></html>');w.document.close()},'linear-gradient(135deg,#0f766e,#14b8a6)');
+mk('✕ বন্ধ',()=>ov.remove(),'#475569');ov.appendChild(bar)}catch(e){ov.innerHTML='<div style="color:#fff">তৈরি করা যায়নি: '+esc(e.message||e)+'</div><button style="padding:10px 16px;border-radius:12px;background:#475569;color:#fff" onclick="this.parentNode.remove()">বন্ধ</button>'}};
+
+function CertAdmin(){
+const[st,setSt]=useState([]),[t,setT]=useState(''),[ex,setEx]=useState({}),[busy,setBusy]=useState(''),[q,setQ]=useState(''),[old,setOld]=useState([]);
+useEffect(()=>{sb.from('profiles').select('id,name').eq('role','student').eq('active',true).order('name').then(r=>setSt(r.data||[]));sb.from('certificates').select('title').limit(300).then(r=>setOld([...new Set((r.data||[]).map(x=>x.title))]))},[]);
+const T=t.trim();
+const load=async()=>{if(!T){setEx({});return}const r=await sb.from('certificates').select('id,student_id').eq('title',T);const m={};(r.data||[]).forEach(x=>{m[x.student_id]=x.id});setEx(m)};
+useEffect(()=>{const h=setTimeout(load,350);return()=>clearTimeout(h)},[t]);
+const give=async s=>{setBusy(s.id);const{error}=await sb.from('certificates').insert({student_id:s.id,title:T});setBusy('');if(error)return alert('হয়নি: '+error.message);setEx(o=>({...o,[s.id]:1}));load()};
+const take=async s=>{if(!confirm('“'+s.name+'” এর সার্টিফিকেট ফেরত নেবেন?'))return;setBusy(s.id);const{data,error}=await sb.from('certificates').delete().eq('student_id',s.id).eq('title',T).select('id');setBusy('');if(error)return alert('হয়নি: '+error.message);if(!(data||[]).length)return alert('মোছা যায়নি (ডাটাবেস অনুমতি দিচ্ছে না)। নতুন SQL চালান।');setEx(o=>{const n={...o};delete n[s.id];return n})};
+const all=async()=>{const todo=st.filter(s=>ex[s.id]===undefined);if(!todo.length)return alert('সবাইকে দেওয়া হয়ে গেছে');if(!confirm(todo.length+' জনকে “'+T+'” এর সার্টিফিকেট দেবেন?'))return;setBusy('all');const{error}=await sb.from('certificates').insert(todo.map(s=>({student_id:s.id,title:T})));setBusy('');if(error)return alert('হয়নি: '+error.message);load()};
+const nq=q.trim().toLowerCase();const list=st.filter(x=>!nq||String(x.name).toLowerCase().includes(nq));
+return html`<div class="space-y-3"><div class="g p-3 space-y-2"><div class="font-bold">🎓 অধ্যায়ের সার্টিফিকেট দিন</div><div class="text-xs text-blue-300">অধ্যায়ের নাম লিখুন (যেমন: Set & Function)। যাদের নামে ট্যাপ করবেন তারা সার্টিফিকেট পাবে, অ্যাপ খুললেই অভিনন্দন বার্তা দেখবে এবং ডাউনলোড করতে পারবে।</div>
+<input list="cert-titles" placeholder="অধ্যায়ের নাম (যেমন: Set & Function)" value=${t} onInput=${e=>setT(e.target.value)}/><datalist id="cert-titles">${old.map(o=>html`<option key=${o} value=${o}/>`)}</datalist>
+<div class="flex gap-2"><button type="button" class="btn flex-1" onClick=${()=>showCert({title:T||'Chapter Name',code:'PREVIEW',issued_on:new Date().toISOString()},'Student Name')}>👁 ডিজাইন দেখুন</button>${T&&html`<button type="button" class="btn flex-1" disabled=${busy==='all'} onClick=${all}>সবাইকে দিন</button>`}</div></div>
+${T&&html`<div class="g p-3 space-y-2"><div class="text-sm font-semibold">${bnD(Object.keys(ex).length)}/${bnD(st.length)} জন সার্টিফিকেট পেয়েছে</div><input placeholder="🔍 নাম খুঁজুন" value=${q} onInput=${e=>setQ(e.target.value)}/>
+<div class="space-y-2">${list.map(x=>{const got=ex[x.id]!==undefined;return html`<button key=${x.id} type="button" disabled=${!!busy} onClick=${()=>got?take(x):give(x)} class=${'w-full flex items-center justify-between gap-3 rounded-2xl border-2 px-4 text-left '+(got?'bg-blue-50 border-blue-400':'bg-white border-slate-200')} style=${{minHeight:'60px'}}><span class="min-w-0"><span class="block text-lg font-semibold truncate">${x.name}</span><span class=${'block text-xs font-semibold '+(got?'text-blue-600':'text-slate-400')}>${got?'🎓 সার্টিফিকেট দেওয়া হয়েছে':'এখনো দেওয়া হয়নি'}</span></span><span class=${'text-2xl w-10 h-10 shrink-0 flex items-center justify-center rounded-full '+(got?'bg-blue-500 text-white':'bg-slate-100 text-slate-300')}>🎓</span></button>`})}</div></div>`}</div>`}
+function CertStudent({p}){
+const[cs,setCs]=useState([]),[seen,setSeen]=useState(()=>{try{return JSON.parse(localStorage.getItem('cert_seen')||'[]')}catch(e){return[]}});
+useEffect(()=>{(async()=>{try{const r=await sb.from('certificates').select('*').eq('student_id',p.id);setCs(r.data||[])}catch(e){}})()},[]);
+const key=c=>String(c.id||c.code||c.title),nw=cs.find(c=>!seen.includes(key(c)));
+const mark=c=>{const n=[...seen,key(c)];setSeen(n);try{localStorage.setItem('cert_seen',JSON.stringify(n))}catch(e){}};
+if(!cs.length)return null;
+return html`<div><div class="g p-3 space-y-2"><div class="font-bold">🎓 আমার সার্টিফিকেট</div>${cs.map(c=>html`<div key=${key(c)} class="flex items-center justify-between gap-2"><span class="text-sm font-semibold min-w-0">${c.title}</span><button type="button" class="btn !py-1 !px-3 text-sm shrink-0" onClick=${()=>showCert(c,p.name)}>দেখুন</button></div>`)}</div>
+${nw&&html`<div style=${{position:'fixed',inset:0,zIndex:1500,background:'rgba(15,12,50,.72)',display:'flex',alignItems:'center',justifyContent:'center',padding:'18px'}}><div style=${{background:'linear-gradient(160deg,#fffdf4,#fdf1cf)',border:'3px solid #d4a017',borderRadius:'26px',padding:'26px 20px',maxWidth:'420px',width:'100%',textAlign:'center',boxShadow:'0 24px 60px rgba(0,0,0,.45)'}}><div style=${{fontSize:'56px'}}>🎉🎓🎉</div><div style=${{fontSize:'24px',fontWeight:800,color:'#312e81',marginTop:'6px'}}>অভিনন্দন, ${p.name}!</div><div style=${{fontSize:'17px',marginTop:'10px',color:'#3b3a66',lineHeight:1.6}}>আপনি <b>“${nw.title}”</b> অধ্যায়টি সফলভাবে শেষ করেছেন।</div><div style=${{fontSize:'14px',marginTop:'6px',color:'#8a6a1c'}}>আপনার সার্টিফিকেট প্রস্তুত, ডাউনলোড করে সংরক্ষণ করুন।</div><button type="button" class="btn w-full" style=${{marginTop:'16px'}} onClick=${()=>{mark(nw);showCert(nw,p.name)}}>🎓 সার্টিফিকেট দেখুন ও ডাউনলোড করুন</button><button type="button" class="underline text-sm" style=${{marginTop:'10px'}} onClick=${()=>mark(nw)}>পরে দেখব</button></div></div>`}</div>`}
+
 function Remind({p,U}){const[n,setN]=useState(0);const r=U.rem||{};
 useEffect(()=>{(async()=>{const[c,k]=await Promise.all([sb.from('classes').select('id').eq('published',true).eq('class_date',today()),sb.from('class_completions').select('class_id').eq('student_id',p.id)]);const d=new Set((k.data||[]).map(x=>x.class_id));setN((c.data||[]).filter(x=>!d.has(x.id)).length)})()},[]);
 const hr=+new Date().toLocaleString('en-GB',{hour:'2-digit',hour12:false,timeZone:'Asia/Dhaka'});
@@ -246,7 +357,7 @@ return html`<div class="space-y-3"><div class="g p-3 space-y-2"><div class="font
 ${ex.map(e=>html`<div key=${e.id} class="g p-3 flex justify-between items-center"><button class="text-left gold" onClick=${()=>open(e)}>${e.title}<div class="text-xs text-blue-200">${e.published?'প্রকাশিত':'ড্রাফট'}</div></button><span class="flex gap-2 text-xs"><button class="underline" onClick=${()=>pub(e)}>${e.published?'লুকান':'প্রকাশ'}</button><button class="underline text-red-300" onClick=${async()=>{if(confirm('পরীক্ষা ও ফলাফল মুছবেন?')){await sb.from('mcq_exams').delete().eq('id',e.id);setSel(null);load()}}}>মুছুন</button></span></div>`)}
 ${sel&&html`<div class="g p-3 space-y-2"><div class="font-semibold gold">${sel.title} — ${cnt}টি প্রশ্ন</div><input placeholder="প্রশ্ন" value=${nq.q} onInput=${e=>setNq({...nq,q:e.target.value})}/>${nq.o.map((x,i)=>html`<div key=${i} class="flex gap-2 items-center"><input type="radio" class="!w-5 !h-5" name="c" checked=${nq.c===i} onChange=${()=>setNq({...nq,c:i})}/><input placeholder=${'অপশন '+(i+1)} value=${x} onInput=${e=>{const o=[...nq.o];o[i]=e.target.value;setNq({...nq,o})}}/></div>`)}<div class="text-xs text-blue-200">রেডিও বাটন = সঠিক উত্তর</div><input type="number" placeholder="মার্ক" value=${nq.m} onInput=${e=>setNq({...nq,m:e.target.value})}/><button class="btn w-full" onClick=${addQ}>প্রশ্ন যোগ</button>
 ${bd.map((r,i)=>html`<div key=${r.student_id} class="flex justify-between text-sm"><span>${i+1}. ${r.name}</span><b>${r.score}/${r.total}</b></div>`)}</div>`}</div>`}
-const printCert=(c,n)=>{const w=window.open('','_blank');if(!w)return alert('পপআপ অনুমতি দিন');w.document.write(`<body style="font-family:serif;text-align:center;padding:60px;border:8px double #b8860b;margin:20px"><h3>OMAR'S PRIVATE BATCH</h3><h1>Certificate of Achievement</h1><p>এটি প্রত্যয়ন করা হচ্ছে যে</p><h2>${esc(n)}</h2><p>${esc(c.title)}</p><p>${esc(c.issued_on)} · ID: ${esc(c.code)}</p><script>setTimeout(print,300)<\/script></body>`);w.document.close()};
+const printCert=(c,n)=>showCert(c,n);
 function Rewards({p}){const[d,setD]=useState(null);
 const load=async()=>{await sb.rpc('award_badges');const[b,sbd,s,c,n,r,m,h]=await Promise.all([sb.from('badges').select('*').eq('active',true),sb.from('student_badges').select('badge_id').eq('student_id',p.id),sb.rpc('my_streak'),sb.from('certificates').select('*').eq('student_id',p.id),sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(50),sb.from('notif_reads').select('notif_id'),sb.from('challenge_members').select('challenge_id').eq('student_id',p.id),sb.from('challenges').select('id').eq('is_deleted',false).eq('all_students',true)]);const ids=new Set([...(m.data||[]).map(x=>x.challenge_id),...(h.data||[]).map(x=>x.id)]);const visible=(n.data||[]).filter(x=>!x.challenge_id||ids.has(x.challenge_id));setD({b:b.data||[],e:new Set((sbd.data||[]).map(x=>x.badge_id)),s:(s.data&&s.data[0])||{cur:0,longest:0,total:0},c:c.data||[],n:visible,r:new Set((r.data||[]).map(x=>x.notif_id))})};useEffect(()=>{load()},[]);
 if(!d)return html`<div class="text-center p-8">লোড হচ্ছে...</div>`;
@@ -679,7 +790,7 @@ const pts=cs.reduce((s,x)=>s+x.pts,0),tot=cs.reduce((s,x)=>s+x.l.length,0),dn=cs
 const lv=d.L.length?lvlOf(pts,d.L):null,nx=d.L.find(x=>x.xp>pts),next=d.cl.find(c=>!d.done.has(c.id)),commOn=!d.fe||d.fe.comm!==false,unread=!!(d.lp&&d.lp>seen),openCls=d.cl.filter(c=>!d.done.has(c.id)&&dueAt(c,d.lim)>Date.now()),bigList=openCls.length?openCls:(d.cl.length?[d.cl[d.cl.length-1]]:[]),gl=Array.isArray(d.gd)?d.gd:[],gunread=!!(gl[0]&&gl[0].at>gseen);
 const U=u=>/^https?:\/\//i.test(u||'')?u:null,Sg=(a,b,x)=>html`<div class="grid grid-cols-3 gap-2">${[a,b,x].map(([i,v,l])=>html`<div key=${l} class="stat"><div>${i}</div><div class="text-xl font-bold">${v}</div><div class="text-xs opacity-90">${l}</div></div>`)}</div>`;
 const T2=(k,l,v,f)=>html`<button class=${'tab flex-1 '+(v===k?'on':'g')} onClick=${()=>f(k)}>${l}</button>`;
-const home=html`<div class="space-y-3 fade"><${NoteStudent} p=${p} inline=${false}/>${bigList.length===0&&html`<div class="g p-6 text-center text-lg">এখনো কোনো ক্লাস দেওয়া হয়নি</div>`}${bigList.map(c=>html`<div key=${c.id} class="g live p-4 text-center space-y-3"><div class="text-sm font-bold text-orange-700">📚 আপনার ক্লাস</div><div class="text-3xl font-bold leading-snug">${c.title}</div><${BigCD} c=${c} L=${d.lim} done=${d.done.has(c.id)}/>${U(c.youtube_url)&&html`<a class="btn block text-center text-xl !py-4" href=${c.youtube_url} target="_blank" rel="noopener">▶ ক্লাস দেখুন</a>`}</div>`)}<div class="hero"><div class="flex justify-between items-start"><div><div class="text-sm opacity-90">স্বাগতম 👋</div><div class="text-2xl font-bold">${p.name}</div>${lv&&html`<span class="chip">⭐ ${lv.n}</span>`}</div><button class="text-4xl" onClick=${()=>setTab('me')}>🏆</button></div>
+const home=html`<div class="space-y-3 fade"><${CertStudent} p=${p}/><${NoteStudent} p=${p} inline=${false}/>${bigList.length===0&&html`<div class="g p-6 text-center text-lg">এখনো কোনো ক্লাস দেওয়া হয়নি</div>`}${bigList.map(c=>html`<div key=${c.id} class="g live p-4 text-center space-y-3"><div class="text-sm font-bold text-orange-700">📚 আপনার ক্লাস</div><div class="text-3xl font-bold leading-snug">${c.title}</div><${BigCD} c=${c} L=${d.lim} done=${d.done.has(c.id)}/>${U(c.youtube_url)&&html`<a class="btn block text-center text-xl !py-4" href=${c.youtube_url} target="_blank" rel="noopener">▶ ক্লাস দেখুন</a>`}</div>`)}<div class="hero"><div class="flex justify-between items-start"><div><div class="text-sm opacity-90">স্বাগতম 👋</div><div class="text-2xl font-bold">${p.name}</div>${lv&&html`<span class="chip">⭐ ${lv.n}</span>`}</div><button class="text-4xl" onClick=${()=>setTab('me')}>🏆</button></div>
 <div class="mt-3">${Sg(['⭐',pts,'পয়েন্ট'],['✅',dn+'/'+tot,'ক্লাস'],['🏅',rank?'#'+rank:'-','র‍্যাংক'])}</div>
 ${nx&&html`<div class="mt-3 text-xs flex justify-between"><span>পরবর্তী লেভেল: ${nx.n}</span><span>${nx.xp-pts} পয়েন্ট বাকি</span></div>${Bar(pct(pts,nx.xp))}`}</div>
 ${next?(U(next.youtube_url)?html`<a class="btn block text-center" href=${next.youtube_url} target="_blank" rel="noopener">▶ পরবর্তী ক্লাস: ${next.title}</a>`:html`<button class="btn w-full" onClick=${()=>setTab('classes')}>▶ ক্লাস দেখুন</button>`):html`<div class="g p-3 text-center text-sm">🎉 সব ক্লাস সম্পন্ন, নতুন ক্লাসের অপেক্ষা করুন</div>`}
